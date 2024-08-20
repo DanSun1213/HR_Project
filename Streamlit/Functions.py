@@ -417,47 +417,7 @@ def get_ai_insights(df):
     except Exception as e:
         return f"An error occurred: {e}"
 
-def create_attrition_plot1(df):
-    plt.figure(figsize=(10, 20))
-    
-    # Calculate attrition rates
-    attrition_by_role = df.groupby('JobRole')['Attrition'].value_counts(normalize=True).unstack()
-    attrition_by_role = attrition_by_role.sort_values('Yes', ascending=False)
-    
-    # Create the stacked bar plot
-    ax = attrition_by_role.plot(kind='bar', stacked=True, width=0.8)
-    
-    plt.title('Attrition Rate by Job Role', fontsize=20, pad=20)
-    plt.xlabel('Job Role', fontsize=14, labelpad=10)
-    plt.ylabel('Percentage', fontsize=14, labelpad=10)
-    
-    # Rotate x-axis labels
-    plt.xticks(rotation=45, ha='right', fontsize=12)
-    plt.yticks(fontsize=12)
-    
-    # Adjust legend
-    plt.legend(title='Attrition', fontsize=8, title_fontsize=10, loc='upper left', bbox_to_anchor=(1, 0.1))
-    
-    # Add percentage labels
-    for i, role in enumerate(attrition_by_role.index):
-        yes_rate = attrition_by_role.loc[role, 'Yes'] * 100
-        plt.text(i, 1.02, f'{yes_rate:.1f}%', ha='center', va='bottom', fontsize=8, fontweight='bold')
-    
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.9)
-    
-    # Add summary text
-    summary_text = (f"Total Employees: {len(df)}\n"
-                    f"Overall Attrition Rate: {df['Attrition'].value_counts(normalize=True)['Yes']*100:.1f}%\n"
-                    f"Highest Attrition: {attrition_by_role['Yes'].idxmax()} ({attrition_by_role['Yes'].max()*100:.1f}%)\n"
-                    f"Lowest Attrition: {attrition_by_role['Yes'].idxmin()} ({attrition_by_role['Yes'].min()*100:.1f}%)")
-    
-    plt.text(1.1, 0.98, summary_text, transform=plt.gca().transAxes, fontsize=8,
-             verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
-    
-    return plt
 
-import streamlit as st
 import requests
 import base64
 import os
@@ -493,14 +453,14 @@ def send_image_to_openai(image_buffer, api_key):
     socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
     socket.socket = socks.socksocket
     api_key = st.secrets["openai_api_key"]
-    base_url = "https://api.openai.com/v1/chat/completions"
+    base_url = 'https://api.openai.com/v1/chat/completions'
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
     base64_image = encode_image(image_buffer)
     payload = {
-        "model": "gpt-4-vision-preview",
+        "model": "gpt-4-turbo",
         "messages": [
             {
                 "role": "user",
@@ -530,3 +490,113 @@ def send_image_to_openai(image_buffer, api_key):
 
 
 
+
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import io
+import base64
+import requests
+
+def create_attrition_plot1(df):
+    plt.figure(figsize=(12, 8))
+    sns.set_style("whitegrid")
+    sns.set_palette("Set2")
+
+    attrition_by_role = df.groupby('JobRole')['Attrition'].value_counts(normalize=True).unstack()
+    attrition_by_role = attrition_by_role.sort_values('Yes', ascending=False)
+    
+    ax = attrition_by_role.plot(kind='bar', stacked=True, width=0.8)
+
+    plt.title('Attrition Rate by Job Role', fontsize=20, pad=20)
+    plt.xlabel('Job Role', fontsize=14, labelpad=10)
+    plt.ylabel('Percentage', fontsize=14, labelpad=10)
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(fontsize=10)
+    
+    # Adjust the plot to make room for labels
+    plt.subplots_adjust(right=0.85, top=0.85)
+
+    # Customize legend
+    plt.legend(title='Attrition', fontsize=10, title_fontsize=12, 
+               loc='center left', bbox_to_anchor=(1.2, 0.5))
+
+    # Add percentage labels above the bars
+    for i, role in enumerate(attrition_by_role.index):
+        yes_rate = attrition_by_role.loc[role, 'Yes'] * 100
+        plt.text(i, 1.01, f'{yes_rate:.1f}%', ha='center', va='bottom', 
+                 fontsize=9, fontweight='bold', color='#333333')
+
+    # Set y-axis to go to 105% to make room for labels
+    plt.ylim(0, 1.05)
+
+    # Add a thin line at 100%
+    plt.axhline(y=1, color='grey', linestyle='--', linewidth=0.8, alpha=0.7)
+
+    # Format y-axis as percentage
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.0%}'.format(y)))
+
+    # Add summary text
+    summary_text = (f"Total Employees: {len(df):,}\n"
+                    f"Overall Attrition Rate: {df['Attrition'].value_counts(normalize=True)['Yes']*100:.1f}%\n")
+                    #f"Highest Attrition: {attrition_by_role['Yes'].idxmax()} ({attrition_by_role['Yes'].max()*100:.1f}%)\n"
+                    #f"Lowest Attrition: {attrition_by_role['Yes'].idxmin()} ({attrition_by_role['Yes'].min()*100:.1f}%)")
+
+    plt.text(1.2, 1, summary_text, transform=plt.gca().transAxes, fontsize=10,
+             verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor='white', alpha=0.8))
+
+    # Save the plot to a buffer
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')
+    buf.seek(0)
+    plt.close()  # Close the plot to free up memory
+
+    return buf
+
+def encode_image(image_buffer):
+    return base64.b64encode(image_buffer.getvalue()).decode('utf-8')
+
+def send_image_to_openai1(image_buffer, api_key):
+    base_url = 'https://api.openai.com/v1/chat/completions' # where to send the request
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    } # 
+    base64_image = encode_image(image_buffer)
+    payload = {
+        "model": "gpt-4-turbo",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """You are an experienced HR professional analyzing this plot. 
+                        Provide insights on the following:
+                        \n\n1. Describe the type of plot and what it represents.
+                        \n2. Identify the job roles with the highest and lowest attrition rates.
+                        \n3. Interpret the overall attrition rate and its implications for the company.
+                        \n4. Highlight any concerning trends or patterns in the data.
+                        \n5. Based on this data, what are the most pressing issues that need to be addressed?
+                        \n6. Provide 2-3 actionable recommendations to reduce attrition in high-risk roles.
+                        \n7. Suggest additional data or metrics that would be valuable for a more comprehensive analysis.
+                        \n\n  Focus on providing strategic insights that can guide decision-making and improve employee retention.
+                        """
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 500
+    }
+    try:
+        response = requests.post(base_url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}

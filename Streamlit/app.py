@@ -123,7 +123,7 @@ if page == "Attrition Analysis":
         with row[0]:
                 # Create and display the plot
             st.subheader("Attrition Rate by Job Role")
-            fig = fn.create_attrition_plot1(df)
+            fig = fn.create_attrition_plot(df)
             st.pyplot(fig)
 
 
