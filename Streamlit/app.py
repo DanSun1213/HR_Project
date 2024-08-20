@@ -38,13 +38,13 @@ if page == "Attrition Analysis":
         row = st.columns(1)
         with row[0]:
             st.subheader("Employee Attrition Counts and Rate")
-            df_attr = df['Attrition']
             job_satisfaction = fn.plot_employee_attrition(df)
             st.pyplot(job_satisfaction)
+            attrition_rate = df["Attrition"].value_counts()
     # Button for AI analysis
             if st.button("Get AI Insights", key = "ai_insights"):
                 with st.spinner("Analyzing data..."):
-                    insights = fn.get_ai_insights(df_attr)
+                    insights = fn.get_ai_insights(attrition_rate)
                     st.subheader("AI Insights")
                     st.markdown(insights)
 
