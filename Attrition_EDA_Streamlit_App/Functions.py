@@ -1,12 +1,21 @@
-import pandas as pd
-
-def read_hr_data(file_path):
-    return pd.read_csv(file_path)
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
+import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+    #import socks
+    #import socket
+
+def read_hr_data(file_path):
+    return pd.read_csv(file_path)
+
+
 
 def visualize_education(df: pd.DataFrame) -> plt.Figure:
     plt.figure(figsize=(14, 8))
@@ -78,10 +87,6 @@ def visualize_job_involvement(df: pd.DataFrame) -> plt.Figure:
     
     return plt.gcf()
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 def plot_attrition_rate(df):
     plt.figure(figsize=(10, 8))
@@ -357,13 +362,11 @@ def create_attrition_plot(df):
 
 # Function to get AI insights
 def get_ai_insights(df):
-    import requests
-    import socks
-    import socket
+
 
 # Configure SOCKS5 proxy
-    socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
-    socket.socket = socks.socksocket
+    #socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+    #socket.socket = socks.socksocket
 
     data_json = df.to_json(orient='records')
     
@@ -424,12 +427,12 @@ import os
 import io
 import matplotlib.pyplot as plt
 import numpy as np
-import socks
-import socket
+
+# import socket
 
 # Configure SOCKS5 proxy
-socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
-socket.socket = socks.socksocket
+#socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+#socket.socket = socks.socksocket
 
 def create_pyplot_image():
     # Create a simple plot
@@ -450,8 +453,8 @@ def encode_image(image_buffer):
     return base64.b64encode(image_buffer.getvalue()).decode('utf-8')
 
 def send_image_to_openai(image_buffer, api_key):
-    socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
-    socket.socket = socks.socksocket
+    #socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+    #socket.socket = socks.socksocket
     api_key = st.secrets["openai_api_key"]
     base_url = 'https://api.openai.com/v1/chat/completions'
     headers = {
