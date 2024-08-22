@@ -19,8 +19,7 @@ from scipy.special import expit
 # Constants
 DEFAULT_DATA_PATH = '/Users/skyler/Documents/HR_Project/Data/cleaned_data/full_employee_data.csv'
 
-# Page Configuration
-#st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
+
 
 # Data Loading Function
 @st.cache_data
@@ -103,6 +102,9 @@ def apply_filters(df, selected_dept, selected_role):
     return df
 
 # In your main function:
+
+# Page Configuration
+st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
 def main():
     st.title("HR Analytics Dashboard")
 
