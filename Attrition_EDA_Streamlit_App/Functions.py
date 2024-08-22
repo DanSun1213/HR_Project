@@ -8,8 +8,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-    #import socks
+import socks
     #import socket
 
 def read_hr_data(file_path):
@@ -365,8 +364,8 @@ def get_ai_insights(df):
 
 
 # Configure SOCKS5 proxy
-    #socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
-    #socket.socket = socks.socksocket
+    socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+    socket.socket = socks.socksocket
 
     data_json = df.to_json(orient='records')
     
@@ -428,11 +427,11 @@ import io
 import matplotlib.pyplot as plt
 import numpy as np
 
-# import socket
+import socket
 
 # Configure SOCKS5 proxy
-#socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
-#socket.socket = socks.socksocket
+socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+socket.socket = socks.socksocket
 
 def create_pyplot_image():
     # Create a simple plot
@@ -453,8 +452,8 @@ def encode_image(image_buffer):
     return base64.b64encode(image_buffer.getvalue()).decode('utf-8')
 
 def send_image_to_openai(image_buffer, api_key):
-    #socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
-    #socket.socket = socks.socksocket
+    socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+    socket.socket = socks.socksocket
     api_key = st.secrets["openai_api_key"]
     base_url = 'https://api.openai.com/v1/chat/completions'
     headers = {
