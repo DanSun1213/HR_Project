@@ -708,3 +708,166 @@ def fig_to_img_buffer(fig):
     buf.seek(0)
     return buf
 
+
+def sidebar_filters(df):
+    st.sidebar.header("Dashboard Controls")
+
+    # Department Filter
+    departments = ['All'] + sorted(df['Department'].unique().tolist())
+    selected_dept = st.sidebar.selectbox("Filter by Department", departments)
+
+    # Job Role Filter
+    job_roles = ['All'] + sorted(df['JobRole'].unique().tolist())
+    selected_role = st.sidebar.selectbox("Filter by Job Role", job_roles)
+
+    # Attrition Filter
+    attrition_filter = st.sidebar.radio("Show Attrition", ('All', 'Yes', 'No'))
+
+    # Age Range Filter
+    age_range = st.sidebar.slider("Age Range", int(df['Age'].min()), int(df['Age'].max()), 
+                                  (int(df['Age'].min()), int(df['Age'].max())))
+
+    st.sidebar.markdown("---")
+    st.sidebar.caption("Created by Dan Sun, HR Data Analyst")
+
+    # Social Links
+    st.sidebar.markdown("### Connect with Me")
+    col1, col2 = st.sidebar.columns(2)
+    col1.markdown("[![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?style=for-the-badge&logo=github)](https://github.com/DanSun1213)")
+    col2.markdown("[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/dan-sun-9b3315186/)")
+
+    return selected_dept, selected_role, attrition_filter, age_range
+
+def apply_filters(df, selected_dept, selected_role, attrition_filter, age_range):
+    if selected_dept != 'All':
+        df = df[df['Department'] == selected_dept]
+    
+    if selected_role != 'All':
+        df = df[df['JobRole'] == selected_role]
+    
+    if attrition_filter != 'All':
+        df = df[df['Attrition'] == attrition_filter]
+    
+    df = df[(df['Age'] >= age_range[0]) & (df['Age'] <= age_range[1])]
+    
+    return df
+
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.svm import SVC
+import joblib
+import pickle
+from scipy.special import expit
+import io
+@st.cache_resource
+def load_ml_components():
+    try:
+        with open('employee_attrition_full_data.pkl', 'rb') as f:
+            data_dict = pickle.load(f)
+        return data_dict['scaler'], data_dict['pca'], data_dict['best_model'], data_dict['feature_names']
+    except:
+        st.error("Error loading pickle file. Attempting to load individual components.")
+        try:
+            scaler = joblib.load('scaler.joblib')
+            pca = joblib.load('pca.joblib')
+            model = joblib.load('best_model.joblib')
+            with open('feature_names.txt', 'r') as f:
+                feature_names = [line.strip() for line in f]
+            return scaler, pca, model, feature_names
+        except FileNotFoundError:
+            st.error("Error loading individual components. Please ensure all required files are present.")
+            st.stop()
+
+scaler, pca, model, feature_names = load_ml_components()
+
+# Define feature input functions
+def get_numeric_input(feature, min_value, max_value, step=1):
+    return st.number_input(f'Enter {feature}', min_value=min_value, max_value=max_value, step=step)
+
+def get_categorical_input(feature, options):
+    return st.selectbox(f'Select {feature}', options)
+
+def get_binary_input(feature):
+    return st.checkbox(feature)
+
+# Define the input form
+def employee_input_form():
+    st.subheader("Enter Employee Details")
+    
+    input_data = {}
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        input_data['Age'] = get_numeric_input('Age', 18, 100)
+        input_data['MonthlyIncome'] = get_numeric_input('Monthly Income', 0, 100000, 100)
+        input_data['DistanceFromHome'] = get_numeric_input('Distance From Home', 0, 100)
+        input_data['TotalWorkingYears'] = get_numeric_input('Total Working Years', 0, 50)
+        input_data['YearsAtCompany'] = get_numeric_input('Years at Company', 0, 40)
+    
+    with col2:
+        input_data['EnvironmentSatisfaction'] = get_categorical_input('Environment Satisfaction', [1, 2, 3, 4])
+        input_data['JobInvolvement'] = get_categorical_input('Job Involvement', [1, 2, 3, 4])
+        input_data['WorkLifeBalance'] = get_categorical_input('Work Life Balance', [1, 2, 3, 4])
+        input_data['StockOptionLevel'] = get_categorical_input('Stock Option Level', [0, 1, 2, 3])
+        input_data['OverTime'] = get_binary_input('Overtime')
+    
+    departments = ['Sales', 'Research & Development', 'Human Resources']
+    selected_dept = get_categorical_input('Department', departments)
+    for dept in departments:
+        input_data[f'Department_{dept}'] = 1 if selected_dept == dept else 0
+    
+    return input_data
+
+def predict_attrition(input_data):
+    input_df = pd.DataFrame([input_data])
+    
+    for feature in feature_names:
+        if feature not in input_df.columns:
+            input_df[feature] = 0
+    
+    input_df = input_df[feature_names]
+    scaled_data = scaler.transform(input_df)
+    pca_data = pca.transform(scaled_data)
+    
+    prediction = model.predict(pca_data)[0]
+    decision_score = model.decision_function(pca_data)[0]
+    probability_score = expit(decision_score)
+    attrition_chance = probability_score * 100
+    
+    attrition_chance = probability_score * 100
+    confidence_level = abs(decision_score)  # Use absolute value for confidence
+    
+    return attrition_chance, confidence_level
+
+def display_prediction_results(attrition_chance, confidence_level):
+    st.subheader("Prediction Results")
+    
+    if attrition_chance > 50:
+        st.warning(f'⚠️ Higher risk of attrition. Estimated chance of leaving: {attrition_chance:.1f}%')
+    else:
+        st.success(f'✅ Lower risk of attrition. Estimated chance of leaving: {attrition_chance:.1f}%')
+    
+    st.write(f"Model's confidence: {'High' if confidence_level > 1 else 'Moderate' if confidence_level > 0.5 else 'Low'}")
+    
+    st.info("""
+    ### Understanding the Prediction:
+    
+    Our model uses advanced machine learning techniques to estimate the likelihood of an employee leaving the company. Here's what you need to know:
+    
+    1. **Prediction**: The model predicts whether an employee is at risk of leaving based on the information provided.
+    
+    2. **Percentage**: The percentage represents the estimated chance of the employee leaving. A higher percentage indicates a higher risk of attrition.
+    
+    3. **Confidence**: This indicates how certain the model is about its prediction. Higher confidence means the model is more sure about its estimate.
+    
+    4. **Model Type**: We use a Support Vector Machine (SVM) model, which is good at classifying employees into "likely to leave" or "likely to stay" categories based on various factors.
+    
+    5. **Interpretation**: While this prediction can be a useful guide, it should be considered alongside other factors and human judgment in HR decision-making.
+    
+    Remember, this is a tool to support decision-making, not to replace human insight in managing employees.
+    """)

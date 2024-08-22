@@ -7,6 +7,8 @@ from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 import joblib
 
+
+
 # Load the saved data and model
 try:
     with open('employee_attrition_full_data.pkl', 'rb') as f:
