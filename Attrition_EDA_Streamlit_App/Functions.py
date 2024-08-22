@@ -108,7 +108,7 @@ def plot_correlation_matrix(df):
     plt.xticks(range(len(correlation_matrix.columns)), correlation_matrix.columns, rotation=90)
     plt.yticks(range(len(correlation_matrix.columns)), correlation_matrix.columns)
     plt.tight_layout()
-    return plt.gcf()
+    return plt.gcf(), correlation_matrix
 
 def plot_demographic_breakdown(df):
     demographic_cols = ['Age', 'Gender', 'MaritalStatus', 'Education', 'EducationField']
@@ -196,7 +196,7 @@ def plot_employee_attrition(df):
     # Visualization to show Employee Attrition in Counts
     attrition_rate = df["Attrition"].value_counts()
     sns.barplot(x=attrition_rate.index, y=attrition_rate.values, palette='Set2', ax=ax1)
-    ax1.set_title("Employee Attrition Counts", fontweight="black", size=14, pad=15)
+    #ax1.set_title("Employee Attrition Counts", fontweight="black", size=14, pad=15)
     for i, v in enumerate(attrition_rate.values):
         ax1.text(i, v, v, ha="center", fontsize=14)
 
@@ -331,7 +331,7 @@ def create_attrition_plot(df):
     attrition_by_role = attrition_by_role.sort_values('Yes', ascending=False)
     ax = attrition_by_role.plot(kind='bar', stacked=True, width=0.8)
     
-    plt.title('Attrition Rate by Job Role', fontsize=20, pad=20)
+    #plt.title('Attrition Rate by Job Role', fontsize=20, pad=20)
     plt.xlabel('Job Role', fontsize=14, labelpad=10)
     plt.ylabel('Percentage', fontsize=14, labelpad=10)
     plt.xticks(rotation=45, ha='right', fontsize=12)
@@ -508,7 +508,7 @@ def create_attrition_plot1(df):
     
     ax = attrition_by_role.plot(kind='bar', stacked=True, width=0.8)
 
-    plt.title('Attrition Rate by Job Role', fontsize=20, pad=20)
+    #plt.title('Attrition Rate by Job Role', fontsize=20, pad=20)
     plt.xlabel('Job Role', fontsize=14, labelpad=10)
     plt.ylabel('Percentage', fontsize=14, labelpad=10)
     plt.xticks(rotation=45, ha='right', fontsize=10)
@@ -600,3 +600,111 @@ def send_image_to_openai1(image_buffer, api_key):
         return response.json()
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
+    
+
+# Cache data loading
+@st.cache_data
+def load_data(file_path):
+    return read_hr_data(file_path)
+
+def send_image_to_openai_1(image_file, api_key, prompt):
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    image_data = image_file.getvalue()
+    base64_image = base64.b64encode(image_data).decode('utf-8')
+
+    payload = {
+        "model": "gpt-4-turbo",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an expert HR data analyst with years of experience in interpreting workforce analytics and providing strategic insights. Your analysis should be thorough, data-driven, and focused on actionable HR strategies."
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 700
+    }
+
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    return response.json()
+
+def get_data_analysis_prompt():
+    return """
+    As a seasoned HR data analyst, provide a focused analysis of this visualization for your HR colleague. Your analysis should be practical, strategic, and directly applicable to HR decision-making. Address the following:
+
+    1. Chart Overview:
+       • Identify the chart type and its title.
+       • Briefly explain how this visualization relates to key HR metrics or challenges.
+
+    2. Data Breakdown:
+       • Describe the main components of the chart (axes, categories, etc.).
+       • Highlight the top 3 most critical data points, using exact figures or percentages.
+
+    3. HR Implications:
+       • What does this data reveal about employee behavior, satisfaction, or performance?
+       • Identify any concerning trends or positive developments in workforce dynamics.
+
+    4. Comparative Insights:
+       • How do different employee groups or categories compare?
+       • Are there any outliers or unexpected patterns that warrant attention?
+
+    5. Strategic HR Focus:
+       • What are the 2 most pressing HR issues or opportunities highlighted by this data?
+       • How might these insights impact current HR policies or programs?
+
+    6. Action Plan:
+       • Suggest 3 specific, data-driven actions HR could take based on this analysis.
+       • For each action, briefly explain its potential impact on employee retention, engagement, or productivity.
+
+    7. Future Outlook:
+       • Based on the trends shown, what should HR be prepared for in the next 6-12 months?
+       • Recommend one additional metric or data point to track that would complement this analysis.
+
+    Present your insights concisely, using bullet points. Focus on information that will help HR make informed decisions about talent management, employee experience, and organizational effectiveness. Your analysis should be both analytical and practical, providing clear guidance for strategic HR initiatives.
+    """
+
+def fig_to_image(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
+
+def load_uploaded_data(uploaded_file):
+    if uploaded_file is not None:
+        try:
+            return pd.read_csv(uploaded_file)
+        except Exception as e:
+            st.error(f"Error reading the file: {str(e)}")
+            return None
+    return None
+
+def fig_to_bytes(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    return buf.getvalue()
+
+def fig_to_img_buffer(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
+

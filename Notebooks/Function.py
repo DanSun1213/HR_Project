@@ -21,6 +21,7 @@ def hist_with_hue(df, col, hue):
     
     plt.tight_layout()
     return fig
+
 def plot_years_at_company_vs_attrition(df):
     import matplotlib.pyplot as plt
     import seaborn as sns
