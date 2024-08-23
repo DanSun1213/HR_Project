@@ -15,13 +15,9 @@ import joblib
 import pickle
 from scipy.special import expit
 import socks  
-# Page Configuration
-
 
 # Constants
-DEFAULT_DATA_PATH = './Data/cleaned_data/full_employee_data.csv'
-
-
+DEFAULT_DATA_PATH = './full_employee_data.csv'
 
 # Data Loading Function
 @st.cache_data
