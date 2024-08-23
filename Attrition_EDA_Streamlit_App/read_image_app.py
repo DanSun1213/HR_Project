@@ -17,7 +17,7 @@ from scipy.special import expit
 import socks  
 
 # Constants
-DEFAULT_DATA_PATH = './full_employee_data.csv'
+DEFAULT_DATA_PATH = 'full_employee_data.csv'
 
 # Data Loading Function
 @st.cache_data
