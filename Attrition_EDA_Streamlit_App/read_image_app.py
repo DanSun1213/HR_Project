@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
 import pandas as pd
 from PIL import Image
 import Functions as fn
@@ -15,7 +16,7 @@ import pickle
 from scipy.special import expit
 import socks  
 # Page Configuration
-# st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
+
 
 # Constants
 DEFAULT_DATA_PATH = '/Users/skyler/Documents/HR_Project/Data/cleaned_data/full_employee_data.csv'
@@ -104,8 +105,7 @@ def apply_filters(df, selected_dept, selected_role):
 
 # In your main function:
 
-# Page Configuration
-#st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
+
 def main():
     st.title("HR Analytics Dashboard")
 
