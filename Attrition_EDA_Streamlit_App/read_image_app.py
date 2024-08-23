@@ -19,7 +19,7 @@ import socks
 
 
 # Constants
-DEFAULT_DATA_PATH = '../Data/cleaned_data/full_employee_data.csv'
+DEFAULT_DATA_PATH = './Data/cleaned_data/full_employee_data.csv'
 
 
 
