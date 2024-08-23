@@ -105,7 +105,7 @@ def apply_filters(df, selected_dept, selected_role):
 # In your main function:
 
 # Page Configuration
-st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
+#st.set_page_config(page_title="HR Analytics Dashboard", page_icon="📊", layout="wide")
 def main():
     st.title("HR Analytics Dashboard")
 
@@ -133,17 +133,17 @@ def main():
         col3.metric("Avg Satisfaction", f"{filtered_df['JobSatisfaction'].mean():.2f}")
         col4.metric("Avg Monthly Income", f"${filtered_df['MonthlyIncome'].mean():.2f}")
 
-        col5, col6 = st.columns(2)
+
         # Interactive Attrition by Department Chart
-        with col5:
-            st.subheader("Attrition by Department")
+
+        st.subheader("Attrition by Department")
         fig = px.bar(filtered_df.groupby('Department')['Attrition'].value_counts(normalize=True).unstack(),
                      barmode='group', height=400)
         st.plotly_chart(fig, use_container_width=True)
 
         # Salary Distribution
-        with col6:
-            st.subheader("Salary Distribution")
+
+        st.subheader("Salary Distribution")
         fig = px.box(filtered_df, x="Department", y="MonthlyIncome", color="Attrition", height=400)
         st.plotly_chart(fig, use_container_width=True)
 
