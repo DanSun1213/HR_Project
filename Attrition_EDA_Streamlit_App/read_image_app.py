@@ -82,6 +82,7 @@ def sidebar_content(df):
     
     st.sidebar.caption("Created by Dan Sun, HR Data Analyst")
     
+
     # Social Links
     st.sidebar.markdown("### Connect with Me")
     col1, col2 = st.sidebar.columns(2)
@@ -116,7 +117,7 @@ def main():
 
 
     # Main content
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Dashboard", "Exploratory Data Analysis (EDA)", "Predictive Analytics", "Image Analysis", "Data Overview"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Dashboard", "Exploratory Data Analysis (EDA)",  "Image Analysis", "Predictive Analytics", "Data Overview"])
 
     # Tab 1: Dashboard
     with tab1:
@@ -128,7 +129,6 @@ def main():
         col2.metric("Attrition Rate", f"{filtered_df['Attrition'].value_counts(normalize=True)['Yes']:.2%}")
         col3.metric("Avg Satisfaction", f"{filtered_df['JobSatisfaction'].mean():.2f}")
         col4.metric("Avg Monthly Income", f"${filtered_df['MonthlyIncome'].mean():.2f}")
-
 
         # Interactive Attrition by Department Chart
 
@@ -188,49 +188,6 @@ def main():
 
     # Tab 3: Predictive Analytics (New)
     with tab3:
-        st.header("Predictive Analytics")
-        st.write("This section uses machine learning to predict employee attrition.")
-        st.header("Employee Attrition Prediction")
-        
-        prediction_method = st.radio("Choose input method:", ["Enter Employee Details", "Upload CSV File"])
-        
-        if prediction_method == "Enter Employee Details":
-            input_data = fn.employee_input_form()
-            if st.button('Predict Attrition'):
-                attrition_chance, confidence_level = fn.predict_attrition(input_data)
-                fn.display_prediction_results(attrition_chance, confidence_level)
-                
-
-        
-        else:
-            uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-            if uploaded_file is not None:
-                    input_df = pd.read_csv(uploaded_file)
-                    st.write(input_df)
-                    
-            if st.button('Predict Attrition for Uploaded Data'):
-                        results = []
-                        for _, row in input_df.iterrows():
-                            attrition_chance, _ = fn.predict_attrition(row)
-                            results.append(attrition_chance)
-                        
-                        input_df['Attrition Risk (%)'] = results
-                        st.write(input_df)
-                        
-                        csv = input_df.to_csv(index=False)
-                        st.download_button(
-                            label="Download results as CSV",
-                            data=csv,
-                            file_name="attrition_predictions.csv",
-                            mime="text/csv",
-                        )
-
-        # Add your predictive model here
-        # For example, you could have a form where users input employee characteristics
-        # and your model predicts the likelihood of attrition
-
-    # Tab 4: Image Analysis (Combination of your Dashboard Image Analysis and Upload Image Analysis)
-    with tab4:
         st.header("Image Analysis")
         
         analysis_type = st.radio("Choose analysis type:", ["Analyze Dashboard Images", "Upload Your Own Image"])
@@ -290,6 +247,50 @@ def main():
                 st.warning("Please upload an image to analyze.")
                 pass
 
+
+    # Tab 4: Image Analysis (Combination of your Dashboard Image Analysis and Upload Image Analysis)
+    with tab4:
+        st.header("Predictive Analytics")
+        st.write("This section uses machine learning to predict employee attrition.")
+        st.header("Employee Attrition Prediction")
+        
+        prediction_method = st.radio("Choose input method:", ["Enter Employee Details", "Upload CSV File"])
+        
+        if prediction_method == "Enter Employee Details":
+            input_data = fn.employee_input_form()
+            if st.button('Predict Attrition'):
+                attrition_chance, confidence_level = fn.predict_attrition(input_data)
+                fn.display_prediction_results(attrition_chance, confidence_level)
+                
+
+        
+        else:
+            uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+            if uploaded_file is not None:
+                    input_df = pd.read_csv(uploaded_file)
+                    st.write(input_df)
+                    
+            if st.button('Predict Attrition for Uploaded Data'):
+                        results = []
+                        for _, row in input_df.iterrows():
+                            attrition_chance, _ = fn.predict_attrition(row)
+                            results.append(attrition_chance)
+                        
+                        input_df['Attrition Risk (%)'] = results
+                        st.write(input_df)
+                        
+                        csv = input_df.to_csv(index=False)
+                        st.download_button(
+                            label="Download results as CSV",
+                            data=csv,
+                            file_name="attrition_predictions.csv",
+                            mime="text/csv",
+                        )
+
+        # Add your predictive model here
+        # For example, you could have a form where users input employee characteristics
+        # and your model predicts the likelihood of attrition
+       
     # Tab 5: Data Overview (Your existing code)
     with tab5:
         # Your existing Data Overview code
